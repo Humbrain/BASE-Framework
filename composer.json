@@ -12,5 +12,12 @@
             "email": "paul.tedesco@humbrain.com"
         }
     ],
-    "require": {}
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "require-dev": {
+        "phpunit/phpunit": "^10.2.4"
+    },
+    "require": {
+        "guzzlehttp/guzzle": "7.7.*"
+    }
 }
