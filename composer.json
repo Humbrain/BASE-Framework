@@ -1,0 +1,16 @@
+{
+    "name": "humbrain/framework",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Humbrain\\Framework\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "steodec",
+            "email": "paul.tedesco@humbrain.com"
+        }
+    ],
+    "require": {}
+}
