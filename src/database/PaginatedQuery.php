@@ -2,7 +2,6 @@
 
 namespace Humbrain\Framework\database;
 
-
 use Pagerfanta\Adapter\AdapterInterface;
 use PDO;
 
@@ -13,9 +12,14 @@ class PaginatedQuery implements AdapterInterface
      * @param PDO $pdo
      * @param string $query
      * @param string $queryCount
+     * @param string $entity
      */
-    public function __construct(private PDO $pdo, private string $query, private string $queryCount, private string $entity)
-    {
+    public function __construct(
+        private PDO $pdo,
+        private string $query,
+        private string $queryCount,
+        private string $entity
+    ) {
     }
 
     public function getNbResults(): int

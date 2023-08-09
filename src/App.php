@@ -35,6 +35,11 @@ class App
     public function run(ServerRequestInterface $request): ResponseInterface
     {
         $uri = $request->getUri()->getPath();
+        $parsedBody = $request->getParsedBody();
+        if (array_key_exists('_method', $parsedBody)
+            && in_array($parsedBody['_method'], ['DELETE', 'PUT'])) :
+            $request = $request->withMethod($parsedBody['_method']);
+        endif;
         if (!empty($uri) && str_ends_with($uri, '/')) {
             $uri = substr($uri, 0, -1);
             return new Response(301, ['Location' => $uri]);

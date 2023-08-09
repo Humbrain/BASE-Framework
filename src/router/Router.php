@@ -3,6 +3,7 @@
 namespace Humbrain\Framework\router;
 
 use AltoRouter;
+use App\modules\Blog\Actions\AdminBlogAction;
 use Exception;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,62 +23,29 @@ class Router
 
     /**
      * @param string $path
-     * @param string|callable $callable
-     * @param string $name
+     * @param string|callable $callable $callable
+     * @param string|null $name
      * @return void
      */
-    public function get(string $path, string|callable $callable, string $name): void
+    public function put(string $path, string|callable $callable, ?string $name = null): void
     {
-        $this->add('GET', $path, $callable, $name);
+        $this->add('PUT', $path, $callable, $name);
     }
 
     /**
      * @param string $method
      * @param string $path
-     * @param callable $callback
-     * @param string $name
+     * @param string|callable $callback
+     * @param string|null $name
      * @return void
      */
-    public function add(string $method, string $path, string|callable $callback, string $name): void
+    public function add(string $method, string $path, string|callable $callback, ?string $name = null): void
     {
         try {
             $this->router->addRoutes([[$method, $path, $callback, $name]]);
         } catch (Exception $e) {
             return;
         }
-    }
-
-    /**
-     * @param string $path
-     * @param callable $callable
-     * @param string $name
-     * @return void
-     */
-    public function post(string $path, string|callable $callable, string $name): void
-    {
-        $this->add('POST', $path, $callable, $name);
-    }
-
-    /**
-     * @param string $path
-     * @param callable $callable
-     * @param string $name
-     * @return void
-     */
-    public function put(string $path, string|callable $callable, string $name): void
-    {
-        $this->add('PUT', $path, $callable, $name);
-    }
-
-    /**
-     * @param string $path
-     * @param callable $callable
-     * @param string $name
-     * @return void
-     */
-    public function delete(string $path, string|callable $callable, string $name): void
-    {
-        $this->add('DELETE', $path, $callable, $name);
     }
 
     /**
@@ -90,7 +58,56 @@ class Router
         if ($result === false) :
             return null;
         endif;
-        return new Route($result['name'], $result['target'], $result['params']);
+        return new Route($result['name'] ?? '', $result['target'], $result['params']);
+    }
+
+    /**
+     * @param string $prefix
+     * @param string $callable
+     * @param string $name
+     * @return void
+     */
+    public function crud(string $prefix, string $callable, string $name): void
+    {
+        $this->get($prefix . '', AdminBlogAction::class, $name . '.index');
+        $this->get($prefix . '/[i:id]', AdminBlogAction::class, $name . '.edit');
+        $this->post($prefix . '/[i:id]', AdminBlogAction::class);
+        $this->get($prefix . '/new', AdminBlogAction::class, $name . '.create');
+        $this->post($prefix . '/new', AdminBlogAction::class);
+        $this->delete($prefix . '/[i:id]', AdminBlogAction::class, $name . '.delete');
+    }
+
+    /**
+     * @param string $path
+     * @param string|callable $callable
+     * @param string $name
+     * @return void
+     */
+    public function get(string $path, string|callable $callable, string $name): void
+    {
+        $this->add('GET', $path, $callable, $name);
+    }
+
+    /**
+     * @param string $path
+     * @param string|callable $callable $callable
+     * @param string|null $name
+     * @return void
+     */
+    public function post(string $path, string|callable $callable, ?string $name = null): void
+    {
+        $this->add('POST', $path, $callable, $name);
+    }
+
+    /**
+     * @param string $path
+     * @param string|callable $callable $callable
+     * @param string|null $name
+     * @return void
+     */
+    public function delete(string $path, string|callable $callable, ?string $name = null): void
+    {
+        $this->add('DELETE', $path, $callable, $name);
     }
 
     public function generateUri(string $string, ?array $array = [], ?array $queryParams = []): ?string

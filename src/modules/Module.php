@@ -4,6 +4,9 @@ namespace Humbrain\Framework\modules;
 
 use Humbrain\Framework\renderer\RendererInterface;
 use Humbrain\Framework\router\Router;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class Module
 {
@@ -15,10 +18,14 @@ class Module
     protected Router $router;
     protected RendererInterface $renderer;
 
-    public function __construct(Router $router, RendererInterface $renderer)
+    public function __construct(ContainerInterface $container)
     {
 
-        $this->router = $router;
-        $this->renderer = $renderer;
+        try {
+            $this->router = $container->get(Router::class);
+            $this->renderer = $container->get(RendererInterface::class);
+        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+            return;
+        }
     }
 }
