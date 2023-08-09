@@ -22,11 +22,11 @@ class Router
 
     /**
      * @param string $path
-     * @param callable $callable
+     * @param string|callable $callable
      * @param string $name
      * @return void
      */
-    public function get(string $path, callable $callable, string $name): void
+    public function get(string $path, string|callable $callable, string $name): void
     {
         $this->add('GET', $path, $callable, $name);
     }
@@ -38,7 +38,7 @@ class Router
      * @param string $name
      * @return void
      */
-    public function add(string $method, string $path, callable $callback, string $name): void
+    public function add(string $method, string $path, string|callable $callback, string $name): void
     {
         try {
             $this->router->addRoutes([[$method, $path, $callback, $name]]);
@@ -53,7 +53,7 @@ class Router
      * @param string $name
      * @return void
      */
-    public function post(string $path, callable $callable, string $name): void
+    public function post(string $path, string|callable $callable, string $name): void
     {
         $this->add('POST', $path, $callable, $name);
     }
@@ -64,7 +64,7 @@ class Router
      * @param string $name
      * @return void
      */
-    public function put(string $path, callable $callable, string $name): void
+    public function put(string $path, string|callable $callable, string $name): void
     {
         $this->add('PUT', $path, $callable, $name);
     }
@@ -75,7 +75,7 @@ class Router
      * @param string $name
      * @return void
      */
-    public function delete(string $path, callable $callable, string $name): void
+    public function delete(string $path, string|callable $callable, string $name): void
     {
         $this->add('DELETE', $path, $callable, $name);
     }

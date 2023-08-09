@@ -10,11 +10,11 @@ namespace Humbrain\Framework\router;
 class Route
 {
     private string $name;
-    /** @var callable */
+    /** @var callable|string */
     private mixed $callback;
     private array $parameters;
 
-    public function __construct(string $name, callable $callback, array $parameters)
+    public function __construct(string $name, string|callable $callback, array $parameters)
     {
         $this->name = $name;
         $this->callback = $callback;
@@ -32,9 +32,9 @@ class Route
 
     /**
      * Get the callback
-     * @return callable
+     * @return callable|string
      */
-    public function getCallback(): callable
+    public function getCallback(): callable|string
     {
         return $this->callback;
     }

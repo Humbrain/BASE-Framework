@@ -8,6 +8,7 @@ use Humbrain\Framework\router\Router;
 class Module
 {
 
+    const DEFINITIONS = null;
     protected Router $router;
     protected RendererInterface $renderer;
 

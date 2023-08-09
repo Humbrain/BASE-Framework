@@ -3,21 +3,30 @@
 namespace Humbrain\Framework;
 
 use GuzzleHttp\Psr7\Response;
-use Humbrain\Framework\renderer\RendererInterface;
 use Humbrain\Framework\router\Router;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class App
 {
-    private array $modules = [];
+    private array $modules;
     private Router $router;
+    private ContainerInterface $container;
 
-    public function __construct(?array $modules = [], array $dependencies = [])
+    /**
+     * @param ContainerInterface $container
+     * @param array $modules
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function __construct(ContainerInterface $container, array $modules = [])
     {
-        $this->router = new Router();
+        $this->container = $container;
         foreach ($modules as $module) {
-            $this->modules[] = new $module($this->router, $dependencies['renderer']);
+            $this->modules[] = $container->get($module);
         }
     }
 
@@ -29,7 +38,8 @@ class App
             $uri = substr($uri, 0, -1);
             return new Response(301, ['Location' => $uri]);
         }
-        $route = $this->router->match($request);
+        $router = $this->container->get(Router::class);
+        $route = $router->match($request);
         if (is_null($route)) :
             return new Response(404, [], '<h1>Error 404</h1>');
         endif;
@@ -37,7 +47,12 @@ class App
         $request = array_reduce(array_keys($params), function ($request, $key) use ($params) {
             return $request->withAttribute($key, $params[$key]);
         }, $request);
-        $result = call_user_func_array($route->getCallback(), [$request]);
+        if (is_string($route->getCallback())) :
+            $callback = $this->container->get($route->getCallback());
+        else :
+            $callback = $route->getCallback();
+        endif;
+        $result = call_user_func_array($callback, [$request]);
         if (is_string($result)) :
             return new Response(200, [], $result);
         elseif ($result instanceof ResponseInterface) :
