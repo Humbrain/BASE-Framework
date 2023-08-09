@@ -93,10 +93,15 @@ class Router
         return new Route($result['name'], $result['target'], $result['params']);
     }
 
-    public function generateUri(string $string, ?array $array = []): ?string
+    public function generateUri(string $string, ?array $array = [], ?array $queryParams = []): ?string
     {
         try {
-            return $this->router->generate($string, $array);
+            $uri = $this->router->generate($string, $array);
+            if (!empty($queryParams)) :
+                return $uri . '?' . http_build_query($queryParams);
+            else :
+                return $uri;
+            endif;
         } catch (Exception $e) {
             return null;
         }
