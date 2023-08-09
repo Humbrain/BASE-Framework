@@ -3,6 +3,7 @@
 namespace Humbrain\Framework;
 
 use GuzzleHttp\Psr7\Response;
+use Humbrain\Framework\renderer\RendererInterface;
 use Humbrain\Framework\router\Router;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -12,11 +13,11 @@ class App
     private array $modules = [];
     private Router $router;
 
-    public function __construct(?array $modules = [])
+    public function __construct(?array $modules = [], array $dependencies = [])
     {
         $this->router = new Router();
         foreach ($modules as $module) {
-            $this->modules[] = new $module($this->router);
+            $this->modules[] = new $module($this->router, $dependencies['renderer']);
         }
     }
 
