@@ -1,23 +1,25 @@
 {
-    "name": "humbrain/framework",
-    "type": "library",
-    "autoload": {
-        "psr-4": {
-            "Humbrain\\Framework\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "steodec",
-            "email": "paul.tedesco@humbrain.com"
-        }
-    ],
-    "minimum-stability": "stable",
-    "prefer-stable": false,
-    "require-dev": {
-        "phpunit/phpunit": "^10.2.4"
-    },
-    "require": {
-        "guzzlehttp/guzzle": "7.7.*"
+  "name": "humbrain/framework",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Humbrain\\Framework\\": "src/",
+      "Tests\\": "tests/"
     }
+  },
+  "authors": [
+    {
+      "name": "steodec",
+      "email": "paul.tedesco@humbrain.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": false,
+  "require-dev": {
+    "phpunit/phpunit": "^10.2.4"
+  },
+  "require": {
+    "guzzlehttp/guzzle": "7.7.*",
+    "altorouter/altorouter": "^2.0"
+  }
 }
