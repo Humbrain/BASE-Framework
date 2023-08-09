@@ -23,17 +23,18 @@ class RouterTwigExtension extends AbstractExtension
         ];
     }
 
-    public function pathFor(string $path, array $params = []): string
-    {
-        return $this->router->generateUri($path, $params) ?? "";
-    }
-
     public function isSubpath(string $path): bool
     {
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = $this->pathFor($path);
         if ($path === '/') {
             return $uri === $path;
         }
         return str_starts_with($uri, $path);
+    }
+
+    public function pathFor(string $path, array $params = []): string
+    {
+        return $this->router->generateUri($path, $params) ?? "";
     }
 }
