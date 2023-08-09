@@ -6,7 +6,6 @@ use GuzzleHttp\Psr7\Response;
 use Humbrain\Framework\router\Router;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,14 +18,16 @@ class App
     /**
      * @param ContainerInterface $container
      * @param array $modules
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
     public function __construct(ContainerInterface $container, array $modules = [])
     {
         $this->container = $container;
         foreach ($modules as $module) {
-            $this->modules[] = $container->get($module);
+            try {
+                $this->modules[] = $container->get($module);
+            } catch (ContainerExceptionInterface $e) {
+                return;
+            }
         }
     }
 
@@ -59,5 +60,13 @@ class App
             return $result;
         endif;
         return new Response(500, [], '<h1>Error 500</h1>');
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
     }
 }

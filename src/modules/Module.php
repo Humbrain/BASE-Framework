@@ -9,6 +9,9 @@ class Module
 {
 
     const DEFINITIONS = null;
+    const MIGRATIONS = null;
+    const SEEDS = null;
+
     protected Router $router;
     protected RendererInterface $renderer;
 
