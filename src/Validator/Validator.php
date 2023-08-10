@@ -2,6 +2,9 @@
 
 namespace Humbrain\Framework\Validator;
 
+use Humbrain\Framework\actions\CrudActions;
+use Humbrain\Framework\database\Repository;
+
 class Validator
 {
     private array $params;
@@ -113,5 +116,14 @@ class Validator
     public function isValidate(): bool
     {
         return empty($this->errors);
+    }
+
+    public function exists(string $key, Repository $repository): static
+    {
+        $value = $this->params[$key];
+        if (!$repository->exists($value)) {
+            $this->addError($key, 'exists', [$value]);
+        }
+        return $this;
     }
 }

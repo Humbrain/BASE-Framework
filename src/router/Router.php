@@ -3,7 +3,7 @@
 namespace Humbrain\Framework\router;
 
 use AltoRouter;
-use App\modules\Blog\Actions\AdminBlogAction;
+use App\modules\Blog\Actions\PostCrudAction;
 use Exception;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -69,12 +69,12 @@ class Router
      */
     public function crud(string $prefix, string $callable, string $name): void
     {
-        $this->get($prefix . '', AdminBlogAction::class, $name . '.index');
-        $this->get($prefix . '/[i:id]', AdminBlogAction::class, $name . '.edit');
-        $this->post($prefix . '/[i:id]', AdminBlogAction::class);
-        $this->get($prefix . '/new', AdminBlogAction::class, $name . '.create');
-        $this->post($prefix . '/new', AdminBlogAction::class);
-        $this->delete($prefix . '/[i:id]', AdminBlogAction::class, $name . '.delete');
+        $this->get($prefix . '', $callable, $name . '.index');
+        $this->get($prefix . '/[i:id]', $callable, $name . '.edit');
+        $this->post($prefix . '/[i:id]', $callable);
+        $this->get($prefix . '/new', $callable, $name . '.create');
+        $this->post($prefix . '/new', $callable);
+        $this->delete($prefix . '/[i:id]', $callable, $name . '.delete');
     }
 
     /**

@@ -15,6 +15,9 @@
   ],
   "minimum-stability": "stable",
   "prefer-stable": false,
+  "scripts": {
+    "test": "phpunit --color"
+  },
   "require-dev": {
     "phpunit/phpunit": "^10.2.4"
   },

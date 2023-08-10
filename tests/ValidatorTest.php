@@ -31,7 +31,7 @@ class ValidatorTest extends TestCase
 
     public function testRequiredIfSuccess()
     {
-        $errors = $this->makeValidator(['name' => 'joe', 'content' => ''])
+        $errors = $this->makeValidator(['name' => 'joe', 'content' => 'toto'])
             ->required('name', 'content')
             ->getErrors();
         $this->assertCount(0, $errors);

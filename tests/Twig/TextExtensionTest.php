@@ -2,20 +2,20 @@
 
 namespace Tests\Twig;
 
-use Humbrain\Framework\extensions\TextExtensions;
+use Humbrain\Framework\extensions\TextExtension;
 use PHPUnit\Framework\TestCase;
 
 class TextExtensionTest extends TestCase
 {
 
     /**
-     * @var TextExtensions
+     * @var TextExtension
      */
     private $textExtension;
 
     public function setUp(): void
     {
-        $this->textExtension = new TextExtensions();
+        $this->textExtension = new TextExtension();
     }
 
     public function testExcerptWithShortText()

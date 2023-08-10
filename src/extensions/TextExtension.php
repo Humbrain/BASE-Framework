@@ -4,7 +4,7 @@ namespace Humbrain\Framework\extensions;
 
 use Twig\Extension\AbstractExtension;
 
-class TextExtensions extends AbstractExtension
+class TextExtension extends AbstractExtension
 {
     public function getFilters(): array
     {
