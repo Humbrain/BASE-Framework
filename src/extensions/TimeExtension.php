@@ -17,6 +17,6 @@ class TimeExtension extends AbstractExtension
 
     public function ago(DateTime $date, string $format = "d/m/Y H:i")
     {
-        return "<time class='timeago' datetime='{$date->format(DateTime::ATOM)}'>{$date->format($format)}</span>";
+        return "<time class='timeago' datetime='{$date->format(DateTime::ATOM)}'>{$date->format($format)}</time>";
     }
 }

@@ -18,7 +18,8 @@ class TextExtensions extends AbstractExtension
         if (mb_strlen($content) <= $limit) :
             return $content;
         endif;
-        $lastSpace = mb_strpos($content, ' ', $limit);
-        return mb_substr($content, 0, $lastSpace) . '...';
+        $excerpt = mb_substr($content, 0, $limit);
+        $lastSpace = mb_strrpos($excerpt, ' ');
+        return mb_substr($excerpt, 0, $lastSpace) . '...';
     }
 }

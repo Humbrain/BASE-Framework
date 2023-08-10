@@ -25,5 +25,8 @@
     "php-di/php-di": "^7.0",
     "pagerfanta/pagerfanta": "^4.2",
     "ext-pdo": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.2.4"
   }
 }
