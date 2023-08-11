@@ -26,6 +26,4 @@ interface SessionInterface
      * @return void
      */
     public function delete(string $key): void;
-
-
 }

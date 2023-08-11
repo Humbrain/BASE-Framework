@@ -27,13 +27,11 @@ class CrudActions
     private FlashService $flash;
 
     public function __construct(
-        FlashService      $flash,
+        FlashService $flash,
         RendererInterface $renderer,
-        Repository        $table,
-        Router            $router
-    )
-    {
-
+        Repository $table,
+        Router $router
+    ) {
         $this->repository = $table;
         $this->router = $router;
         $this->renderer = $renderer;

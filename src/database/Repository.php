@@ -2,6 +2,7 @@
 
 namespace Humbrain\Framework\database;
 
+use Humbrain\Framework\Exceptions\NoRecordException;
 use Pagerfanta\Pagerfanta;
 use PDO;
 

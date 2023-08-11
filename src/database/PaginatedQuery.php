@@ -16,13 +16,12 @@ class PaginatedQuery implements AdapterInterface
      * @param array $params
      */
     public function __construct(
-        private PDO    $pdo,
+        private PDO $pdo,
         private string $query,
         private string $queryCount,
         private string $entity,
-        private array  $params = []
-    )
-    {
+        private array $params = []
+    ) {
     }
 
     public function getNbResults(): int

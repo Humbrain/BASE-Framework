@@ -58,7 +58,7 @@ class App implements Handler
     /**
      * @return ContainerInterface
      */
-    private function getContainer(): ContainerInterface
+    public function getContainer(): ContainerInterface
     {
         if (isset($this->container)) :
             return $this->container;

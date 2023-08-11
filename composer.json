@@ -18,10 +18,8 @@
   "scripts": {
     "test": "phpunit --color"
   },
-  "require-dev": {
-    "phpunit/phpunit": "^10.2.4"
-  },
   "require": {
+    "http-interop/response-sender": "^1.0",
     "guzzlehttp/guzzle": "7.7.*",
     "altorouter/altorouter": "^2.0",
     "twig/twig": "^3.7",

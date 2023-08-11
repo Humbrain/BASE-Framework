@@ -1,6 +1,6 @@
 <?php
 
-namespace Humbrain\Framework\database;
+namespace Humbrain\Framework\Exceptions;
 
 use Exception;
 

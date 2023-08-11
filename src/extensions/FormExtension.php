@@ -24,14 +24,13 @@ class FormExtension extends AbstractExtension
      * @return string
      */
     public function field(
-        array  $context,
+        array $context,
         string $name,
         string $label,
-        mixed  $value = null,
+        mixed $value = null,
         string $type = 'text',
-        array  $options = []
-    ): string
-    {
+        array $options = []
+    ): string {
         $error = $context['errors'] ?? [];
         $classDiv = ['form-group'];
         $classInput = ['form-control'];
