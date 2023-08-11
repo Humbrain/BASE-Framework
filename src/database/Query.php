@@ -20,6 +20,7 @@ class Query
     private int $limit;
     private array $params = [];
     private PDO $pdo;
+    private string $entity;
 
     /**
      * Query constructor.
@@ -121,6 +122,26 @@ class Query
         $query = clone $this;
         $query->select = ['COUNT(*)'];
         return $query->execute()->fetchColumn();
+    }
+
+    /**
+     * Return all results
+     * @return QueryResult
+     */
+    public function all(): QueryResult
+    {
+        return new QueryResult($this->execute()->fetchAll(), $this->entity);
+    }
+
+    /**
+     * Return the results as an array of objects
+     * @param string $class
+     * @return $this
+     */
+    public function into(string $class): self
+    {
+        $this->entity = $class;
+        return $this;
     }
 
     /**
