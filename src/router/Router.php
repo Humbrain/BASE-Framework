@@ -74,7 +74,7 @@ class Router
     {
         $this->get($prefix . '', $callable, $name . '.index');
         $this->get($prefix . '/[i:id]', $callable, $name . '.edit');
-        $this->post($prefix . '/[i:id]', $callable);
+        $this->put($prefix . '/[i:id]', $callable);
         $this->get($prefix . '/new', $callable, $name . '.create');
         $this->post($prefix . '/new', $callable);
         $this->delete($prefix . '/[i:id]', $callable, $name . '.delete');

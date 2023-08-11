@@ -2,76 +2,106 @@
 
 namespace Humbrain\Framework;
 
-use GuzzleHttp\Psr7\Response;
-use Humbrain\Framework\router\Router;
+use DI\ContainerBuilder;
+use Exception;
+use Humbrain\Framework\modules\Module;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface as Handler;
 
-class App
+class App implements Handler
 {
+    /** @var Module[] */
     private array $modules;
-    private Router $router;
+    private string $definition;
+
+    /** @var string[] */
+    private array $middlewares = [];
+
+    private int $index = 0;
+
     private ContainerInterface $container;
 
-    /**
-     * @param ContainerInterface $container
-     * @param array $modules
-     */
-    public function __construct(ContainerInterface $container, array $modules = [])
+    public function __construct(string $definition)
     {
-        $this->container = $container;
-        foreach ($modules as $module) {
-            try {
-                $this->modules[] = $container->get($module);
-            } catch (ContainerExceptionInterface $e) {
-                return;
-            }
-        }
+        $this->definition = $definition;
     }
 
+    public function addModule(string $module): self
+    {
+        $this->modules[] = $module;
+        return $this;
+    }
+
+    public function pipe(string $middleware): self
+    {
+        $this->middlewares[] = $middleware;
+        return $this;
+    }
 
     public function run(ServerRequestInterface $request): ResponseInterface
     {
-        $uri = $request->getUri()->getPath();
-        $parsedBody = $request->getParsedBody();
-        if (array_key_exists('_method', $parsedBody)
-            && in_array($parsedBody['_method'], ['DELETE', 'PUT'])) :
-            $request = $request->withMethod($parsedBody['_method']);
-        endif;
-        if (!empty($uri) && str_ends_with($uri, '/')) {
-            $uri = substr($uri, 0, -1);
-            return new Response(301, ['Location' => $uri]);
-        }
-        $router = $this->container->get(Router::class);
-        $route = $router->match($request);
-        if (is_null($route)) :
-            return new Response(404, [], '<h1>Error 404</h1>');
-        endif;
-        $params = $route->getParams();
-        $request = array_reduce(array_keys($params), function ($request, $key) use ($params) {
-            return $request->withAttribute($key, $params[$key]);
-        }, $request);
-        if (is_string($route->getCallback())) :
-            $callback = $this->container->get($route->getCallback());
-        else :
-            $callback = $route->getCallback();
-        endif;
-        $result = call_user_func_array($callback, [$request]);
-        if (is_string($result)) :
-            return new Response(200, [], $result);
-        elseif ($result instanceof ResponseInterface) :
-            return $result;
-        endif;
-        return new Response(500, [], '<h1>Error 500</h1>');
+        foreach ($this->modules as $module) :
+            try {
+                $this->getContainer()->get($module);
+            } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+                continue;
+            }
+        endforeach;
+        return $this->handle($request);
     }
 
     /**
      * @return ContainerInterface
      */
-    public function getContainer(): ContainerInterface
+    private function getContainer(): ContainerInterface
     {
+        if (isset($this->container)) :
+            return $this->container;
+        endif;
+        $builder = new ContainerBuilder();
+        $builder->addDefinitions($this->definition);
+        foreach ($this->modules as $module) {
+            if (!is_null($module::DEFINITIONS)) :
+                $builder->addDefinitions($module::DEFINITIONS);
+            endif;
+        }
+        try {
+            $this->container = $builder->build();
+        } catch (Exception $e) {
+            return $this->container;
+        }
+
         return $this->container;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $middleware = $this->getMiddleWare();
+        if (is_null($middleware)) :
+            throw new Exception('Aucun middleware n\'a intercepté cette requête');
+        elseif (is_callable($middleware)) :
+            return call_user_func_array($middleware, [$request, [$this, 'handle']]);
+        elseif ($middleware instanceof MiddlewareInterface) :
+            return $middleware->process($request, $this);
+        endif;
+        throw new Exception('Le middleware n\'est pas valide');
+    }
+
+    private function getMiddleWare(): ?object
+    {
+        if (array_key_exists($this->index, $this->middlewares)) :
+            $middleware = $this->getContainer()->get($this->middlewares[$this->index]);
+            $this->index++;
+            return $middleware;
+        endif;
+        return null;
     }
 }
