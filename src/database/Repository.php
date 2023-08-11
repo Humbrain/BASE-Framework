@@ -2,6 +2,8 @@
 
 namespace Humbrain\Framework\database;
 
+use Framework\Database\PaginatedQuery;
+use Framework\Database\Query;
 use Humbrain\Framework\Exceptions\NoRecordException;
 use Pagerfanta\Pagerfanta;
 use PDO;
@@ -19,19 +21,13 @@ class Repository
     }
 
     /**
-     * @param int $page
-     * @param int $limitPerPage
-     * @return Pagerfanta
+     * @return Query
      */
-    public function findPaginated(int $page = 0, int $limitPerPage = 10): Pagerfanta
+    public function makeQuery(): Query
     {
-        $query = new PaginatedQuery(
-            $this->pdo,
-            $this->paginationQuery(),
-            "SELECT COUNT(id) FROM {$this->table_name}",
-            $this->entity
-        );
-        return (new Pagerfanta($query))->setMaxPerPage($limitPerPage)->setCurrentPage($page);
+        return (new Query($this->pdo))
+            ->from($this->table, $this->table[0])
+            ->into($this->entity);
     }
 
     /**

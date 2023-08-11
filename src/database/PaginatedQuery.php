@@ -1,57 +1,48 @@
 <?php
+namespace Framework\Database;
 
-namespace Humbrain\Framework\database;
-
+use Humbrain\Framework\database\QueryResult;
 use Pagerfanta\Adapter\AdapterInterface;
-use PDO;
 
 class PaginatedQuery implements AdapterInterface
 {
 
     /**
-     * @param PDO $pdo
-     * @param string $query
-     * @param string $queryCount
-     * @param string $entity
-     * @param array $params
+     * @var Query
      */
-    public function __construct(
-        private PDO $pdo,
-        private string $query,
-        private string $queryCount,
-        private string $entity,
-        private array $params = []
-    ) {
-    }
+    private Query $query;
 
-    public function getNbResults(): int
+
+    /**
+     * PaginatedQuery constructor.
+     * @param Query $query
+     */
+    public function __construct(Query $query)
     {
-        if (!empty($this->params)) :
-            $stmt = $this->pdo->prepare($this->queryCount);
-            $stmt->execute($this->params);
-        else :
-            $stmt = $this->pdo->query($this->queryCount);
-        endif;
-        return $stmt->fetchColumn();
+        $this->query = $query;
     }
 
     /**
-     * @param int $offset
-     * @param int $length
-     * @return iterable
+     * Returns the number of results.
+     *
+     * @return integer The number of results.
      */
-    public function getSlice(int $offset = 0, int $length = 0): iterable
+    public function getNbResults(): int
     {
-        $query = $this->pdo->prepare($this->query . " LIMIT :offset, :length");
-        if (!empty($this->params)) :
-            foreach ($this->params as $key => $value) :
-                $query->bindParam($key, $value);
-            endforeach;
-        endif;
-        $query->bindParam(':offset', $offset, PDO::PARAM_INT);
-        $query->bindParam(':length', $length, PDO::PARAM_INT);
-        $query->execute();
-        $query->setFetchMode(PDO::FETCH_CLASS, $this->entity);
-        return $query->fetchAll();
+        return $this->query->count();
+    }
+
+    /**
+     * Returns an slice of the results.
+     *
+     * @param integer $offset The offset.
+     * @param integer $length The length.
+     *
+     * @return QueryResult The slice.
+     */
+    public function getSlice($offset, $length): QueryResult
+    {
+        $query = clone $this->query;
+        return $query->limit($length, $offset)->fetchAll();
     }
 }

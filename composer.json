@@ -1,5 +1,12 @@
 {
   "name": "humbrain/framework",
+  "description": "A simple PHP framework",
+  "keywords": [
+    "php",
+    "framework"
+  ],
+  "license": "MIT",
+  "version": "2.0.0",
   "type": "library",
   "autoload": {
     "psr-4": {

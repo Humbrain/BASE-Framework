@@ -1,78 +1,106 @@
 <?php
 
-namespace Humbrain\Framework\database;
+namespace Framework\Database;
 
-use PDO;
+use Humbrain\Framework\database\QueryResult;
+use Humbrain\Framework\Exceptions\NoRecordException;
+use Pagerfanta\Pagerfanta;
 use PDOStatement;
+use Traversable;
 
-/**
- * Class Query
- * @class Query
- * @package Humbrain\Framework\database
- */
-class Query
+class Query implements \IteratorAggregate
 {
-    private array $select = [];
-    private array $from = [];
-    private array $where = [];
-    private array $group = [];
-    private array $order = [];
-    private int $limit;
-    private array $params = [];
-    private PDO $pdo;
-    private string $entity;
 
-    /**
-     * Query constructor.
-     * @param PDO $pdo
-     */
-    public function __construct(PDO $pdo)
+    private $select;
+
+    private $from;
+
+    private $where = [];
+
+    private $entity;
+
+    private $order = [];
+
+    private $limit;
+
+    private $joins;
+
+    private $pdo;
+
+    private $params = [];
+
+    public function __construct(?\PDO $pdo = null)
     {
         $this->pdo = $pdo;
     }
 
     /**
-     * Set the table to query FROM
+     * Definit le FROM
      * @param string $table
-     * @param string|null $alias
-     * @return $this
+     * @param null|string $alias
+     * @return Query
      */
-    public function from(string $table, string $alias = null): self
+    public function from(string $table, ?string $alias = null): self
     {
-        if (is_null($alias)) :
+        if ($alias) {
+            $this->from[$table] = $alias;
+        } else {
             $this->from[] = $table;
-        else :
-            $this->from[$alias] = $table;
-        endif;
+        }
         return $this;
     }
 
     /**
-     * Add parameters to the query
-     * @param array $params
-     * @return $this
-     */
-    public function params(array $params): self
-    {
-        $this->params = array_merge($this->params, $params);
-        return $this;
-    }
-
-    /**
-     * Add fields to select
+     * Spécifie les champs à récupérer
      * @param string ...$fields
-     * @return $this
+     * @return Query
      */
     public function select(string ...$fields): self
     {
-        $this->select = array_merge($this->select, $fields);
+        $this->select = $fields;
         return $this;
     }
 
     /**
-     * Add conditions to WHERE
-     * @param string ...$condition
-     * @return $this
+     * Spécifie la limite
+     * @param int $length
+     * @param int $offset
+     * @return Query
+     */
+    public function limit(int $length, int $offset = 0): self
+    {
+        $this->limit = "$offset, $length";
+        return $this;
+    }
+
+    /**
+     * Spécifie l'ordre de récupération
+     * @param string $order
+     * @return Query
+     */
+    public function order(string $order): self
+    {
+        $this->order[] = $order;
+        return $this;
+    }
+
+    /**
+     * Ajoute une liaison
+     * @param string $table
+     * @param string $condition
+     * @param string $type
+     * @return Query
+     */
+    public function join(string $table, string $condition, string $type = "left"): self
+    {
+        $this->joins[$type][] = [$table, $condition];
+        return $this;
+    }
+
+    /**
+     * Définit la condition de récupération
+     * @param string[] ...$condition
+     * @return Query
      */
     public function where(string ...$condition): self
     {
@@ -81,132 +109,170 @@ class Query
     }
 
     /**
-     * Add fields to GROUP BY
-     * @param string ...$fields
-     * @return $this
-     */
-    public function groupBy(string ...$fields): self
-    {
-        $this->group = array_merge($this->group, $fields);
-        return $this;
-    }
-
-    /**
-     * Add fields to ORDER BY
-     * @param string ...$fields
-     * @return $this
-     */
-    public function orderBy(string ...$fields): self
-    {
-        $this->order = array_merge($this->order, $fields);
-        return $this;
-    }
-
-    /**
-     * Set the number of results to return
-     * @param int $limit
-     * @return $this
-     */
-    public function limit(int $limit): self
-    {
-        $this->limit = $limit;
-        return $this;
-    }
-
-    /**
-     * Return number of results
+     * Execute un COUNT() et renvoie la colonne
      * @return int
      */
     public function count(): int
     {
         $query = clone $this;
-        $query->select = ['COUNT(*)'];
-        return $query->execute()->fetchColumn();
+        $table = current($this->from);
+        return $query->select("COUNT($table.id)")->execute()->fetchColumn();
     }
 
     /**
-     * Return all results
-     * @return QueryResult
+     * Définit les paramètre pour la requête
+     * @param array $params
+     * @return Query
      */
-    public function all(): QueryResult
+    public function params(array $params): self
     {
-        return new QueryResult($this->execute()->fetchAll(), $this->entity);
-    }
-
-    /**
-     * Return the results as an array of objects
-     * @param string $class
-     * @return $this
-     */
-    public function into(string $class): self
-    {
-        $this->entity = $class;
+        $this->params = array_merge($this->params, $params);
         return $this;
     }
 
     /**
-     * Build the query
-     * @return string
+     * Spécifie l'entité à utiliser
+     * @param string $entity
+     * @return Query
      */
-    public function __toString(): string
+    public function into(string $entity): self
     {
-        $parts = ['SELECT'];
-        if (empty($this->select)) :
-            $parts[] = '*';
-        else :
-            $parts[] = implode(', ', $this->select);
-        endif;
-        $parts[] = 'FROM';
-        $parts[] = $this->buildFrom();
-        if (!empty($this->where)) :
-            $parts[] = 'WHERE';
-            $parts[] = '(' . implode(') AND (', $this->where) . ')';
-        endif;
-        if (!empty($this->group)) :
-            $parts[] = 'GROUP BY';
-            $parts[] = implode(', ', $this->group);
-        endif;
-        if (!empty($this->order)) :
-            $parts[] = 'ORDER BY';
-            $parts[] = implode(', ', $this->order);
-        endif;
-        if (!empty($this->limit)) :
-            $parts[] = 'LIMIT';
-            $parts[] = $this->limit;
-        endif;
-        return implode(' ', $parts);
+        $this->entity = $entity;
+        return $this;
     }
 
     /**
-     * Build the FROM part of the query
+     * Récupère un résultat
+     */
+    public function fetch()
+    {
+        $record = $this->execute()->fetch(\PDO::FETCH_ASSOC);
+        if ($record === false) {
+            return false;
+        }
+        if ($this->entity) {
+            return Hydrator::hydrate($record, $this->entity);
+        }
+        return $record;
+    }
+
+    /**
+     * Récupère un résultat
+     * @param int $columnNumber
+     * @return mixed
+     */
+    public function fetchColumn(int $columnNumber = 0): mixed
+    {
+        return $this->execute()->fetchColumn($columnNumber);
+    }
+
+    /**
+     * Retournera un résultat ou renvoie une exception
+     * @return bool|mixed
+     * @throws NoRecordException
+     */
+    public function fetchOrFail(): mixed
+    {
+        $record = $this->fetch();
+        if ($record === false) {
+            throw new NoRecordException();
+        }
+        return $record;
+    }
+
+    /**
+     * Lance la requête
+     * @return QueryResult
+     */
+    public function fetchAll(): QueryResult
+    {
+        return new QueryResult(
+            $this->execute()->fetchAll(\PDO::FETCH_ASSOC),
+            $this->entity
+        );
+    }
+
+    /**
+     * Pagine les résultats
+     * @param int $perPage
+     * @param int $currentPage
+     * @return Pagerfanta
+     */
+    public function paginate(int $perPage, int $currentPage = 1): Pagerfanta
+    {
+        $paginator = new PaginatedQuery($this);
+        return (new Pagerfanta($paginator))->setMaxPerPage($perPage)->setCurrentPage($currentPage);
+    }
+
+    /**
+     * Génère la requête SQL
+     * @return string
+     */
+    public function __toString()
+    {
+        $parts = ['SELECT'];
+        if ($this->select) {
+            $parts[] = join(', ', $this->select);
+        } else {
+            $parts[] = '*';
+        }
+        $parts[] = 'FROM';
+        $parts[] = $this->buildFrom();
+        if (!empty($this->joins)) {
+            foreach ($this->joins as $type => $joins) {
+                foreach ($joins as [$table, $condition]) {
+                    $parts[] = strtoupper($type) . " JOIN $table ON $condition";
+                }
+            }
+        }
+        if (!empty($this->where)) {
+            $parts[] = "WHERE";
+            $parts[] = "(" . join(') AND (', $this->where) . ')';
+        }
+        if (!empty($this->order)) {
+            $parts[] = 'ORDER BY';
+            $parts[] = join(', ', $this->order);
+        }
+        if ($this->limit) {
+            $parts[] = 'LIMIT ' . $this->limit;
+        }
+        return join(' ', $parts);
+    }
+
+    /**
+     * Construit le FROM a as b ....
      * @return string
      */
     private function buildFrom(): string
     {
         $from = [];
-        foreach ($this->from as $key => $value) :
-            if (is_string($key)) :
-                $from[] = "$value AS $key";
-            else :
+        foreach ($this->from as $key => $value) {
+            if (is_string($key)) {
+                $from[] = "$key as $value";
+            } else {
                 $from[] = $value;
-            endif;
-        endforeach;
-        return implode(', ', $from);
+            }
+        }
+        return join(', ', $from);
     }
 
     /**
-     * Execute the query
-     * @return false|PDOStatement
+     * Exécute la requête
+     * @return PDOStatement
      */
-    private function execute(): false|PDOStatement
+    private function execute(): PDOStatement
     {
         $query = $this->__toString();
-        if (!empty($this->params)) :
+        if (!empty($this->params)) {
             $statement = $this->pdo->prepare($query);
             $statement->execute($this->params);
             return $statement;
-        else :
-            return $this->pdo->query($query);
-        endif;
+        }
+        return $this->pdo->query($query);
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->fetchAll();
     }
 }
