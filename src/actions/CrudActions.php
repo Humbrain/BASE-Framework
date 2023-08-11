@@ -22,7 +22,7 @@ class CrudActions
         'edit' => "L'élément a bien été modifié"
     ];
     private RendererInterface $renderer;
-    private Repository $repository;
+    protected Repository $repository;
     private Router $router;
     private FlashService $flash;
 
@@ -120,6 +120,8 @@ class CrudActions
                 return $this->redirect($this->routePrefix . '.index');
             endif;
             $errors = $validator->getErrors();
+            $item = $params;
+            $item["id"] = $id;
         endif;
         return $this->renderer->render($this->viewPath . '/edit', $this->getFormParams(compact('item', 'errors')));
     }

@@ -13,8 +13,11 @@ class TextExtension extends AbstractExtension
         ];
     }
 
-    public function excerpt(string $content, int $limit = 100): string
+    public function excerpt(?string $content, int $limit = 100): string
     {
+        if ($content === null) :
+            return '';
+        endif;
         if (mb_strlen($content) <= $limit) :
             return $content;
         endif;

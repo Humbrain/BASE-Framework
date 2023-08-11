@@ -19,6 +19,9 @@ class Router
     public function __construct()
     {
         $this->router = new AltoRouter();
+        $this->router->addMatchTypes([
+            "s" => "[a-z\-0-9]+"
+        ]);
     }
 
     /**

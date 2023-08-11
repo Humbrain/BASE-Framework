@@ -35,6 +35,7 @@ class FormExtension extends AbstractExtension
         $error = $context['errors'] ?? [];
         $classDiv = ['form-group'];
         $classInput = ['form-control'];
+        $value = htmlspecialchars($value);
         list($classDiv[], $classInput[], $errorDiv) = $this->returnErrorDiv($name, $error);
         $classDiv = implode(' ', $classDiv);
         $classInput = implode(' ', $classInput);

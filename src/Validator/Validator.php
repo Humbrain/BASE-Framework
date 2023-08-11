@@ -2,7 +2,6 @@
 
 namespace Humbrain\Framework\Validator;
 
-use Humbrain\Framework\actions\CrudActions;
 use Humbrain\Framework\database\Repository;
 
 class Validator
@@ -116,6 +115,15 @@ class Validator
     public function isValidate(): bool
     {
         return empty($this->errors);
+    }
+
+    public function unique(string $key, Repository $repository, ?int $exclude = null): static
+    {
+        $value = $this->params[$key];
+        if ($repository->exists($value, $key, $exclude)) {
+            $this->addError($key, 'unique', [$value, $key]);
+        }
+        return $this;
     }
 
     public function exists(string $key, Repository $repository): static

@@ -13,6 +13,7 @@ class ValidationError
         "betweenLength" => "Le champ %s doit contenir entre %d et %d caractères",
         "datetime" => "Le champ %s doit être une date valide (%s)",
         "exists" => "La valeur du champ %s (%s) n'existe pas dans la table",
+        "unique" => "%s a déjà une entrée dans la table avec cette valeur (%s)",
     ];
     private string $key;
     private string $rule;

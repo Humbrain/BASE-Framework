@@ -10,7 +10,7 @@ class Repository
     protected string $table_name;
 
     protected string|null $entity;
-    private PDO $pdo;
+    protected PDO $pdo;
 
     public function __construct(PDO $pdo)
     {
@@ -41,6 +41,56 @@ class Repository
         return "SELECT * FROM {$this->table_name}";
     }
 
+    /**
+     * @return Entity[]
+     */
+    public function findAll(): array
+    {
+        $query = $this->pdo->query("SELECT * FROM {$this->table_name}");
+        if ($this->entity === null) :
+            return $query->fetchAll();
+        endif;
+        $query->setFetchMode(PDO::FETCH_CLASS, $this->entity);
+        return $query->fetchAll();
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return Entity
+     * @throws NoRecordException
+     */
+    public function findBy(string $key, string $value): Entity
+    {
+        $record = $this->fetchOrFail("SELECT * FROM {$this->table_name} WHERE $key = ?", [$value]);
+        if ($record === false) :
+            throw new NoRecordException($this->table_name, $key, $value);
+        endif;
+        return $record;
+    }
+
+    /**
+     * @throws NoRecordException
+     */
+    protected function fetchOrFail(string $query, array $params = [])
+    {
+        $query = $this->pdo->prepare($query);
+        $query->execute($params);
+        if ($this->entity !== null) :
+            $query->setFetchMode(PDO::FETCH_CLASS, $this->entity);
+        endif;
+        $result = $query->fetch();
+        if ($result === false) {
+            throw new NoRecordException("Aucun résultat n'a été trouvé");
+        }
+        return $result;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @return array
+     */
     public function findList(string $key, string $value): array
     {
         $query = $this->pdo->query("SELECT * FROM {$this->table_name}");
@@ -54,17 +104,12 @@ class Repository
 
     /**
      * @param int $id
-     * @return $this->entity
+     * @return Entity
+     * @throws NoRecordException
      */
-    public function find(int $id): mixed
+    public function find(int $id): Entity
     {
-        $smtp = $this->pdo->prepare("SELECT * FROM {$this->table_name} WHERE id = ?");
-        $smtp->execute([$id]);
-        if ($this->entity === null) :
-            return $smtp->fetch();
-        endif;
-        $smtp->setFetchMode(PDO::FETCH_CLASS, $this->entity);
-        return $smtp->fetch();
+        return $this->fetchOrFail("SELECT * FROM {$this->table_name} WHERE id = ?", [$id]);
     }
 
     /**
@@ -121,10 +166,22 @@ class Repository
         return $this->entity;
     }
 
-    public function exists(mixed $value): bool
+    public function exists(mixed $value, ?string $fields = null, ?int $exclude = null): bool
     {
-        $query = $this->pdo->prepare("SELECT * FROM {$this->table_name} WHERE id = ?");
-        $query->execute([$value]);
+        $value = [$value];
+        if (is_null($fields)) :
+            $query = $this->pdo->prepare("SELECT * FROM {$this->table_name} WHERE id = ?");
+        else :
+            if (is_null($exclude)) :
+                $query = $this->pdo->prepare("SELECT * FROM {$this->table_name} WHERE $fields = ?");
+            else :
+                $query = $this->pdo->prepare(
+                    "SELECT * FROM {$this->table_name} WHERE $fields = ? AND id != ?"
+                );
+                $value[] = $exclude;
+            endif;
+        endif;
+        $query->execute($value);
         return $query->fetch() !== false;
     }
 }
