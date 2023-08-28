@@ -23,7 +23,7 @@ class App implements Handler
 
     private string|array|null $definitions;
 
-    private ContainerInterface $container;
+    private ?ContainerInterface $container = null;
 
     private array $middlewares = [];
 
